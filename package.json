@@ -4,7 +4,10 @@
   "description": "Generate a DSL with generators",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "pretest": "eslint .",
+    "test": "istanbul cover _mocha -- --recursive",
+    "posttest": "istanbul check-coverage --statement 100 --functions 100 --branches 100 --lines 100",
+    "start": "watch 'npm -s test' . --interval=1 -d -p='/coverage/m' --wait=2"
   },
   "repository": {
     "type": "git",
@@ -20,6 +23,13 @@
   },
   "homepage": "https://github.com/pghalliday/dsl-generator#readme",
   "devDependencies": {
-    "mocha": "^2.5.3"
+    "chai": "^3.5.0",
+    "co": "^4.6.0",
+    "eslint": "^3.0.1",
+    "eslint-config-google": "^0.6.0",
+    "eslint-plugin-mocha": "^4.0.0",
+    "istanbul": "^0.4.4",
+    "mocha": "^2.5.3",
+    "watch": "^0.19.1"
   }
 }
