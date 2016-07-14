@@ -1,0 +1,25 @@
+{
+  "name": "dsl-generator",
+  "version": "1.0.0",
+  "description": "Generate a DSL with generators",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pghalliday/dsl-generator.git"
+  },
+  "keywords": [
+    "DSL"
+  ],
+  "author": "Peter Halliday <pghalliday@gmail.com> (http://pghalliday.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pghalliday/dsl-generator/issues"
+  },
+  "homepage": "https://github.com/pghalliday/dsl-generator#readme",
+  "devDependencies": {
+    "mocha": "^2.5.3"
+  }
+}
