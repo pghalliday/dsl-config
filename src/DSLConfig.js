@@ -1,4 +1,6 @@
+const co = require('co');
 const _ = require('lodash');
+const isGeneratorFunction = require('../vendor/isGeneratorFunction');
 
 class DSLConfig {
   constructor(dslConfig) {
@@ -12,9 +14,18 @@ class DSLConfig {
     }
   }
 
-  configure(callback) {
-    callback(this.dsl);
-    return this.dsl.__config;
+  * configure(callback) {
+    if (isGeneratorFunction(callback)) {
+      yield callback(this.dsl);
+      return this.dsl.__config;
+    }
+    return Promise.resolve()
+    .then(() => {
+      return callback(this.dsl);
+    })
+    .then(() => {
+      return this.dsl.__config;
+    });
   }
 
   value(name) {
@@ -33,9 +44,12 @@ class DSLConfig {
   object(name) {
     const dslConfig = new DSLConfig();
     this.dsl[name] = function(callback) {
-      const clone = new DSLConfig(dslConfig);
-      this.__config[name] = clone.dsl.__config;
-      callback(clone.dsl);
+      const self = this;
+      return co(function * () {
+        const clone = new DSLConfig(dslConfig);
+        self.__config[name] = clone.dsl.__config;
+        yield callback(clone.dsl);
+      });
     };
     return dslConfig;
   }
@@ -44,9 +58,12 @@ class DSLConfig {
     const dslConfig = new DSLConfig();
     this.dsl.__config[name] = [];
     this.dsl[name] = function(callback) {
-      const clone = new DSLConfig(dslConfig);
-      this.__config[name].push(clone.dsl.__config);
-      callback(clone.dsl);
+      const self = this;
+      return co(function * () {
+        const clone = new DSLConfig(dslConfig);
+        self.__config[name].push(clone.dsl.__config);
+        yield callback(clone.dsl);
+      });
     };
     return dslConfig;
   }
