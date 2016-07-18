@@ -32,8 +32,9 @@ class DSLConfig {
 
   configure(callback) {
     // first bind the DSL methods to work with the correct
-    // config context  as they have not been bound yet
-    // in case they needed to be cloned
+    // config context as they have not been bound yet
+    // in case they needed to be cloned (a function can
+    // only be bound once)
     _.forOwn(this.dsl, (value, key) => {
       this.dsl[key] = value.bind(this);
     });
@@ -46,11 +47,19 @@ class DSLConfig {
 
   value(name, dslConfig) {
     if (_.isUndefined(dslConfig)) {
+      // will be bound later so that the config field
+      // can be accessed, this is done so that we don't
+      // have to pollute the DSL name space with a reference
+      // to the config
       this.dsl[name] = function(value) {
         this.config[name] = value;
         return this.dsl;
       };
     } else {
+      // will be bound later so that the config field
+      // can be accessed, this is done so that we don't
+      // have to pollute the DSL name space with a reference
+      // to the config
       this.dsl[name] = function(callback) {
         const clone = new DSLConfig(dslConfig);
         this.config[name] = clone.config;
@@ -67,11 +76,19 @@ class DSLConfig {
   list(name, dslConfig) {
     this.config[name] = [];
     if (_.isUndefined(dslConfig)) {
+      // will be bound later so that the config field
+      // can be accessed, this is done so that we don't
+      // have to pollute the DSL name space with a reference
+      // to the config
       this.dsl[name] = function(value) {
         this.config[name].push(value);
         return this.dsl;
       };
     } else {
+      // will be bound later so that the config field
+      // can be accessed, this is done so that we don't
+      // have to pollute the DSL name space with a reference
+      // to the config
       this.dsl[name] = function(callback) {
         const clone = new DSLConfig(dslConfig);
         this.config[name].push(clone.config);
