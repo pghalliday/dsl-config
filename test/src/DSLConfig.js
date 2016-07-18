@@ -58,7 +58,7 @@ describe('DSLConfig', () => {
 
     it('should default the value to undefined', () => {
       dslConfig.configure(() => {
-        // do nothing
+        return true;
       }).should.eql({});
     });
 
@@ -67,6 +67,7 @@ describe('DSLConfig', () => {
         config
         .value1('value1')
         .value2('value2');
+        return true;
       }).should.eql({
         value1: 'value1',
         value2: 'value2'
@@ -83,7 +84,7 @@ describe('DSLConfig', () => {
 
     it('should default the list to an empty array', () => {
       dslConfig.configure(() => {
-        // do nothing
+        return true;
       }).should.eql({
         list1: [],
         list2: []
@@ -97,6 +98,7 @@ describe('DSLConfig', () => {
         .list1('value1_2')
         .list2('value2_1')
         .list2('value2_2');
+        return true;
       }).should.eql({
         list1: [
           'value1_1',
@@ -129,7 +131,7 @@ describe('DSLConfig', () => {
 
     it('should default the object to undefined', () => {
       dslConfig.configure(() => {
-        // do nothing
+        return true;
       }).should.eql({});
     });
 
@@ -141,12 +143,15 @@ describe('DSLConfig', () => {
             sub1
             .sub1value1('sub1value1')
             .sub1value2('sub1value2');
+            return true;
           })
           .sub2(sub2 => {
             sub2
             .sub2value1('sub2value1')
             .sub2value2('sub2value2');
+            return true;
           });
+          return true;
         }).should.eql({
           sub1: {
             sub1value1: 'sub1value1',
@@ -274,7 +279,7 @@ describe('DSLConfig', () => {
 
     it('should default the object list to an empty array', () => {
       dslConfig.configure(() => {
-        // do nothing
+        return true;
       }).should.eql({
         sub1: [],
         sub2: []
@@ -289,22 +294,27 @@ describe('DSLConfig', () => {
             sub1
             .sub1value1('sub1_1value1')
             .sub1value2('sub1_1value2');
+            return true;
           })
           .sub2(sub2 => {
             sub2
             .sub2value1('sub2_1value1')
             .sub2value2('sub2_1value2');
+            return true;
           })
           .sub1(sub1 => {
             sub1
             .sub1value1('sub1_2value1')
             .sub1value2('sub1_2value2');
+            return true;
           })
           .sub2(sub2 => {
             sub2
             .sub2value1('sub2_2value1')
             .sub2value2('sub2_2value2');
+            return true;
           });
+          return true;
         }).should.eql({
           sub1: [{
             sub1value1: 'sub1_1value1',

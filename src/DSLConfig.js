@@ -2,6 +2,19 @@ const co = require('co');
 const _ = require('lodash');
 const isGeneratorFunction = require('../vendor/isGeneratorFunction');
 
+function isPromise(obj) {
+  return Promise.resolve(obj) === obj;
+}
+
+function configureDsl(dsl, callback) {
+  if (isGeneratorFunction(callback)) {
+    return co(function * () {
+      yield callback(dsl);
+    });
+  }
+  return callback(dsl);
+}
+
 class DSLConfig {
   constructor(dslConfig) {
     if (_.isUndefined(dslConfig)) {
@@ -14,23 +27,12 @@ class DSLConfig {
     }
   }
 
-  __configure(callback) {
-    const self = this;
-    if (isGeneratorFunction(callback)) {
-      return co(function * () {
-        yield callback(self.dsl);
-      })
-      .then(() => self.dsl);
-    }
-    return callback(self.dsl);
-  }
-
   configure(callback) {
-    const promise = this.__configure(callback);
-    if (_.isUndefined(promise)) {
-      return this.dsl.__config;
+    const promise = configureDsl(this.dsl, callback);
+    if (isPromise(promise)) {
+      return promise.then(() => this.dsl.__config);
     }
-    return promise.then(() => this.dsl.__config);
+    return this.dsl.__config;
   }
 
   value(name, dslConfig) {
@@ -43,11 +45,11 @@ class DSLConfig {
       this.dsl[name] = function(callback) {
         const clone = new DSLConfig(dslConfig);
         this.__config[name] = clone.dsl.__config;
-        const promise = clone.__configure(callback);
-        if (_.isUndefined(promise)) {
-          return this;
+        const promise = configureDsl(clone.dsl, callback);
+        if (isPromise(promise)) {
+          return promise.then(() => this);
         }
-        return promise.then(() => this);
+        return this;
       };
     }
     return this;
@@ -64,11 +66,11 @@ class DSLConfig {
       this.dsl[name] = function(callback) {
         const clone = new DSLConfig(dslConfig);
         this.__config[name].push(clone.dsl.__config);
-        const promise = clone.__configure(callback);
-        if (_.isUndefined(promise)) {
-          return this;
+        const promise = configureDsl(clone.dsl, callback);
+        if (isPromise(promise)) {
+          return promise.then(() => this);
         }
-        return promise.then(() => this);
+        return this;
       };
     }
     return this;
