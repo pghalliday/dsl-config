@@ -1,7 +1,6 @@
 const co = require('co');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
-const expect = chai.expect;
 chai.should();
 chai.use(chaiAsPromised);
 
@@ -52,74 +51,118 @@ describe('DSLConfig', () => {
 
   describe('#value', () => {
     beforeEach(() => {
-      dslConfig.value('hello');
+      dslConfig
+      .value('value1')
+      .value('value2');
     });
 
     it('should default the value to undefined', () => {
-      const config = dslConfig.configure(() => {
+      dslConfig.configure(() => {
         // do nothing
-      });
-      expect(config.hello).to.be.undefined;
+      }).should.eql({});
     });
 
     it('should add a value method', () => {
-      const config = dslConfig.configure(dsl => {
-        dsl.hello('boo');
+      dslConfig.configure(config => {
+        config
+        .value1('value1')
+        .value2('value2');
+      }).should.eql({
+        value1: 'value1',
+        value2: 'value2'
       });
-      config.hello.should.eql('boo');
     });
   });
 
-  describe('#valueList', () => {
+  describe('#list', () => {
     beforeEach(() => {
-      dslConfig.valueList('hello');
+      dslConfig
+      .list('list1')
+      .list('list2');
     });
 
     it('should default the list to an empty array', () => {
-      const config = dslConfig.configure(() => {
+      dslConfig.configure(() => {
         // do nothing
+      }).should.eql({
+        list1: [],
+        list2: []
       });
-      config.hello.should.eql([]);
     });
 
-    it('should add a valueList method', () => {
-      const config = dslConfig.configure(dsl => {
-        dsl.hello('boo');
-        dsl.hello('banana');
+    it('should add a list method', () => {
+      dslConfig.configure(config => {
+        config
+        .list1('value1_1')
+        .list1('value1_2')
+        .list2('value2_1')
+        .list2('value2_2');
+      }).should.eql({
+        list1: [
+          'value1_1',
+          'value1_2'
+        ],
+        list2: [
+          'value2_1',
+          'value2_2'
+        ]
       });
-      config.hello.should.eql(['boo', 'banana']);
     });
   });
 
-  describe('#object', () => {
+  describe('#value with a DSLConfig', () => {
     beforeEach(() => {
-      const dslHello = dslConfig.object('hello');
-      dslHello.value('boo');
+      dslConfig
+      .value(
+        'sub1',
+        new DSLConfig()
+        .value('sub1value1')
+        .value('sub1value2')
+      )
+      .value(
+        'sub2',
+        new DSLConfig()
+        .value('sub2value1')
+        .value('sub2value2')
+      );
     });
 
     it('should default the object to undefined', () => {
-      const config = dslConfig.configure(() => {
+      dslConfig.configure(() => {
         // do nothing
-      });
-      expect(config.hello).to.be.undefined;
+      }).should.eql({});
     });
 
     describe('with a synchronous callback', () => {
       it('should add an object method', () => {
-        const config = dslConfig.configure(dsl => {
-          dsl.hello(hello => {
-            hello.boo('banana');
+        dslConfig.configure(config => {
+          config
+          .sub1(sub1 => {
+            sub1
+            .sub1value1('sub1value1')
+            .sub1value2('sub1value2');
+          })
+          .sub2(sub2 => {
+            sub2
+            .sub2value1('sub2value1')
+            .sub2value2('sub2value2');
           });
-        });
-        config.hello.should.eql({
-          boo: 'banana'
+        }).should.eql({
+          sub1: {
+            sub1value1: 'sub1value1',
+            sub1value2: 'sub1value2'
+          },
+          sub2: {
+            sub2value1: 'sub2value1',
+            sub2value2: 'sub2value2'
+          }
         });
       });
 
       it('should throw if the callback throws', () => {
         (() => {
-          dslConfig.configure(dsl => {
-            dsl.hello(() => {
+          dslConfig.configure(config => {
+            config.sub1(() => {
               throw new Error('configure error');
             });
           });
@@ -130,22 +173,37 @@ describe('DSLConfig', () => {
     describe('with a generator callback', () => {
       it('should add an object method', () => {
         return co(function * () {
-          const config = yield dslConfig.configure(function * (dsl) {
-            yield dsl.hello(function * (hello) {
+          const config = yield dslConfig.configure(function * (config) {
+            const config1 = yield config.sub1(function * (sub1) {
               yield nextTick();
-              hello.boo('banana');
+              sub1
+              .sub1value1('sub1value1')
+              .sub1value2('sub1value2');
+            });
+            yield config1.sub2(function * (sub2) {
+              yield nextTick();
+              sub2
+              .sub2value1('sub2value1')
+              .sub2value2('sub2value2');
             });
           });
-          config.hello.should.eql({
-            boo: 'banana'
+          config.should.eql({
+            sub1: {
+              sub1value1: 'sub1value1',
+              sub1value2: 'sub1value2'
+            },
+            sub2: {
+              sub2value1: 'sub2value1',
+              sub2value2: 'sub2value2'
+            }
           });
         });
       });
 
       it('should throw if the callback throws', () => {
         return co(function * () {
-          yield dslConfig.configure(function * (dsl) {
-            yield dsl.hello(function * () {
+          yield dslConfig.configure(function * (config) {
+            yield config.sub1(function * () {
               yield nextTick();
               throw new Error('configure error');
             });
@@ -156,23 +214,40 @@ describe('DSLConfig', () => {
 
     describe('with a callback that returns a promise', () => {
       it('should add an object method', () => {
-        return dslConfig.configure(dsl => {
-          return dsl.hello(hello => {
+        return dslConfig.configure(config => {
+          return config.sub1(sub1 => {
             return nextTick()
             .then(() => {
-              hello.boo('banana');
+              sub1
+              .sub1value1('sub1value1')
+              .sub1value2('sub1value2');
+            });
+          })
+          .then(config => {
+            return config.sub2(sub2 => {
+              return nextTick()
+              .then(() => {
+                sub2
+                .sub2value1('sub2value1')
+                .sub2value2('sub2value2');
+              });
             });
           });
         }).should.eventually.eql({
-          hello: {
-            boo: 'banana'
+          sub1: {
+            sub1value1: 'sub1value1',
+            sub1value2: 'sub1value2'
+          },
+          sub2: {
+            sub2value1: 'sub2value1',
+            sub2value2: 'sub2value2'
           }
         });
       });
 
       it('should throw if the callback throws', () => {
-        return dslConfig.configure(dsl => {
-          return dsl.hello(() => {
+        return dslConfig.configure(config => {
+          return config.sub1(() => {
             return Promise.reject(new Error('configure error'));
           });
         }).should.be.rejectedWith('configure error');
@@ -180,40 +255,78 @@ describe('DSLConfig', () => {
     });
   });
 
-  describe('#objectList', () => {
+  describe('#list with a DSLConfig', () => {
     beforeEach(() => {
-      const dslHello = dslConfig.objectList('hello');
-      dslHello.value('boo');
+      dslConfig
+      .list(
+        'sub1',
+        new DSLConfig()
+        .value('sub1value1')
+        .value('sub1value2')
+      )
+      .list(
+        'sub2',
+        new DSLConfig()
+        .value('sub2value1')
+        .value('sub2value2')
+      );
     });
 
     it('should default the object list to an empty array', () => {
-      const config = dslConfig.configure(() => {
+      dslConfig.configure(() => {
         // do nothing
+      }).should.eql({
+        sub1: [],
+        sub2: []
       });
-      config.hello.should.eql([]);
     });
 
     describe('with a synchronous callback', () => {
       it('should add an objectList method', () => {
-        const config = dslConfig.configure(dsl => {
-          dsl.hello(hello => {
-            hello.boo('banana');
+        dslConfig.configure(config => {
+          config
+          .sub1(sub1 => {
+            sub1
+            .sub1value1('sub1_1value1')
+            .sub1value2('sub1_1value2');
+          })
+          .sub2(sub2 => {
+            sub2
+            .sub2value1('sub2_1value1')
+            .sub2value2('sub2_1value2');
+          })
+          .sub1(sub1 => {
+            sub1
+            .sub1value1('sub1_2value1')
+            .sub1value2('sub1_2value2');
+          })
+          .sub2(sub2 => {
+            sub2
+            .sub2value1('sub2_2value1')
+            .sub2value2('sub2_2value2');
           });
-          dsl.hello(hello => {
-            hello.boo('apple');
-          });
+        }).should.eql({
+          sub1: [{
+            sub1value1: 'sub1_1value1',
+            sub1value2: 'sub1_1value2'
+          }, {
+            sub1value1: 'sub1_2value1',
+            sub1value2: 'sub1_2value2'
+          }],
+          sub2: [{
+            sub2value1: 'sub2_1value1',
+            sub2value2: 'sub2_1value2'
+          }, {
+            sub2value1: 'sub2_2value1',
+            sub2value2: 'sub2_2value2'
+          }]
         });
-        config.hello.should.eql([{
-          boo: 'banana'
-        }, {
-          boo: 'apple'
-        }]);
       });
 
       it('should throw if the callback throws', () => {
         (() => {
-          dslConfig.configure(dsl => {
-            dsl.hello(() => {
+          dslConfig.configure(config => {
+            config.sub1(() => {
               throw new Error('configure error');
             });
           });
@@ -224,28 +337,55 @@ describe('DSLConfig', () => {
     describe('with a generator callback', () => {
       it('should add an objectList method', () => {
         return co(function * () {
-          const config = yield dslConfig.configure(function * (dsl) {
-            yield dsl.hello(function * (hello) {
+          const config = yield dslConfig.configure(function * (config) {
+            let config1 = yield config.sub1(function * (sub1) {
               yield nextTick();
-              hello.boo('banana');
+              sub1
+              .sub1value1('sub1_1value1')
+              .sub1value2('sub1_1value2');
             });
-            yield dsl.hello(function * (hello) {
+            config1 = yield config1.sub2(function * (sub2) {
               yield nextTick();
-              hello.boo('apple');
+              sub2
+              .sub2value1('sub2_1value1')
+              .sub2value2('sub2_1value2');
+            });
+            config1 = yield config1.sub1(function * (sub1) {
+              yield nextTick();
+              sub1
+              .sub1value1('sub1_2value1')
+              .sub1value2('sub1_2value2');
+            });
+            yield config1.sub2(function * (sub2) {
+              yield nextTick();
+              sub2
+              .sub2value1('sub2_2value1')
+              .sub2value2('sub2_2value2');
             });
           });
-          config.hello.should.eql([{
-            boo: 'banana'
-          }, {
-            boo: 'apple'
-          }]);
+          config.should.eql({
+            sub1: [{
+              sub1value1: 'sub1_1value1',
+              sub1value2: 'sub1_1value2'
+            }, {
+              sub1value1: 'sub1_2value1',
+              sub1value2: 'sub1_2value2'
+            }],
+            sub2: [{
+              sub2value1: 'sub2_1value1',
+              sub2value2: 'sub2_1value2'
+            }, {
+              sub2value1: 'sub2_2value1',
+              sub2value2: 'sub2_2value2'
+            }]
+          });
         });
       });
 
       it('should throw if the callback throws', () => {
         return co(function * () {
-          yield dslConfig.configure(function * (dsl) {
-            yield dsl.hello(function * () {
+          yield dslConfig.configure(function * (config) {
+            yield config.sub1(function * () {
               yield nextTick();
               throw new Error('configure error');
             });
@@ -256,33 +396,66 @@ describe('DSLConfig', () => {
 
     describe('with a callback that returns a promise', () => {
       it('should add an objectList method', () => {
-        return dslConfig.configure(dsl => {
-          return dsl.hello(hello => {
+        return dslConfig.configure(config => {
+          return config.sub1(sub1 => {
             return nextTick()
             .then(() => {
-              hello.boo('banana');
+              sub1
+              .sub1value1('sub1_1value1')
+              .sub1value2('sub1_1value2');
             });
           })
-          .then(() => {
-            return dsl.hello(hello => {
+          .then(config => {
+            return config.sub2(sub2 => {
               return nextTick()
               .then(() => {
-                hello.boo('apple');
+                sub2
+                .sub2value1('sub2_1value1')
+                .sub2value2('sub2_1value2');
+              });
+            });
+          })
+          .then(config => {
+            return config.sub1(sub1 => {
+              return nextTick()
+              .then(() => {
+                sub1
+                .sub1value1('sub1_2value1')
+                .sub1value2('sub1_2value2');
+              });
+            });
+          })
+          .then(config => {
+            return config.sub2(sub2 => {
+              return nextTick()
+              .then(() => {
+                sub2
+                .sub2value1('sub2_2value1')
+                .sub2value2('sub2_2value2');
               });
             });
           });
         }).should.eventually.eql({
-          hello: [{
-            boo: 'banana'
+          sub1: [{
+            sub1value1: 'sub1_1value1',
+            sub1value2: 'sub1_1value2'
           }, {
-            boo: 'apple'
+            sub1value1: 'sub1_2value1',
+            sub1value2: 'sub1_2value2'
+          }],
+          sub2: [{
+            sub2value1: 'sub2_1value1',
+            sub2value2: 'sub2_1value2'
+          }, {
+            sub2value1: 'sub2_2value1',
+            sub2value2: 'sub2_2value2'
           }]
         });
       });
 
       it('should throw if the callback throws', () => {
-        return dslConfig.configure(dsl => {
-          return dsl.hello(() => {
+        return dslConfig.configure(config => {
+          return config.sub1(() => {
             return Promise.reject(new Error('configure error'));
           });
         }).should.be.rejectedWith('configure error');
