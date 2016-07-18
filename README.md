@@ -125,8 +125,8 @@ const config = dslConfig.configure(config => {
 You can also use generators to asynchronously create a configuration (when asynchronous, `#configure` will actually return a `Promise`)
 
 ```javascript
-dslConfig.configure(function * (config) {
-  let config = yield config.value3(function * (value3) {
+dslConfig.configure(function * (dsl) {
+  dsl = yield config.value3(function * (value3) {
     // etc...
   });
   // etc...
@@ -138,14 +138,14 @@ dslConfig.configure(function * (config) {
 Or the DSL callbacks can return promises
 
 ```javascript
-dslConfig.configure(config => {
-  return config.value3(value3 => {
+dslConfig.configure(dsl => {
+  return dsl.value3(value3 => {
     return Promise.resolve()
     .then(() => {
       // etc...
     });
   })
-  .then(config => {
+  .then(dsl => {
     // etc...
   });
 }).then(config => {
