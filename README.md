@@ -93,8 +93,8 @@ The above would generate a DSL to create a configuration object with the followi
 Then to synchronously create a configuration
 
 ```javascript
-const config = dslConfig.configure(config => {
-  config
+const config = dslConfig.configure(dsl => {
+  dsl
   .value1('value')
   .value2('value')
   .list1('value')
