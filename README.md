@@ -126,7 +126,7 @@ You can also use generators to asynchronously create a configuration (when async
 
 ```javascript
 dslConfig.configure(function * (config) {
-  yield config.value3(function * (value3) {
+  let config = yield config.value3(function * (value3) {
     // etc...
   });
   // etc...
@@ -145,7 +145,7 @@ dslConfig.configure(config => {
       // etc...
     });
   })
-  .then(() => {
+  .then(config => {
     // etc...
   });
 }).then(config => {
