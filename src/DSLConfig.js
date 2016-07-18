@@ -19,60 +19,67 @@ function configureDsl(dsl, callback) {
 
 class DSLConfig {
   constructor(dslConfig) {
-    if (_.isUndefined(dslConfig)) {
-      this.dsl = {
-        __config: {}
-      };
-    } else {
-      this.dsl = _.clone(dslConfig.dsl);
-      this.dsl.__config = {};
+    this.dsl = {};
+    this.config = {};
+    if (!_.isUndefined(dslConfig)) {
+      // bind the DSL methods to work with the correct
+      // config context
+      _.forOwn(dslConfig.dsl, (value, key) => {
+        this.dsl[key] = value.bind(this);
+      });
     }
   }
 
   configure(callback) {
+    // first bind the DSL methods to work with the correct
+    // config context  as they have not been bound yet
+    // in case they needed to be cloned
+    _.forOwn(this.dsl, (value, key) => {
+      this.dsl[key] = value.bind(this);
+    });
     const promise = configureDsl(this.dsl, callback);
     if (isPromise(promise)) {
-      return promise.then(() => this.dsl.__config);
+      return promise.then(() => this.config);
     }
-    return this.dsl.__config;
+    return this.config;
   }
 
   value(name, dslConfig) {
     if (_.isUndefined(dslConfig)) {
       this.dsl[name] = function(value) {
-        this.__config[name] = value;
-        return this;
+        this.config[name] = value;
+        return this.dsl;
       };
     } else {
       this.dsl[name] = function(callback) {
         const clone = new DSLConfig(dslConfig);
-        this.__config[name] = clone.dsl.__config;
+        this.config[name] = clone.config;
         const promise = configureDsl(clone.dsl, callback);
         if (isPromise(promise)) {
-          return promise.then(() => this);
+          return promise.then(() => this.dsl);
         }
-        return this;
+        return this.dsl;
       };
     }
     return this;
   }
 
   list(name, dslConfig) {
-    this.dsl.__config[name] = [];
+    this.config[name] = [];
     if (_.isUndefined(dslConfig)) {
       this.dsl[name] = function(value) {
-        this.__config[name].push(value);
-        return this;
+        this.config[name].push(value);
+        return this.dsl;
       };
     } else {
       this.dsl[name] = function(callback) {
         const clone = new DSLConfig(dslConfig);
-        this.__config[name].push(clone.dsl.__config);
+        this.config[name].push(clone.config);
         const promise = configureDsl(clone.dsl, callback);
         if (isPromise(promise)) {
-          return promise.then(() => this);
+          return promise.then(() => this.dsl);
         }
-        return this;
+        return this.dsl;
       };
     }
     return this;
