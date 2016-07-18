@@ -5,6 +5,7 @@ module.exports = {
     es6: true
   },
   rules: {
-    'no-unused-vars': [2, {'args': 'after-used', 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_'}]
+    'no-unused-vars': [2, {'args': 'after-used', 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_'}],
+    'require-jsdoc': 0
   }
 };
