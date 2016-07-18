@@ -1,7 +1,9 @@
 const co = require('co');
 const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
 const expect = chai.expect;
 chai.should();
+chai.use(chaiAsPromised);
 
 const DSLConfig = require('../../src/DSLConfig');
 
@@ -19,45 +21,31 @@ describe('DSLConfig', () => {
   });
 
   describe('#configure', () => {
-    beforeEach(() => {
-      dslConfig.value('hello');
-    });
-
     describe('with a synchronous callback', () => {
-      it('should return a config object', () => {
-        return co(function * () {
-          const config = yield dslConfig.configure(dsl => {
-            dsl.hello('boo');
+      it('should throw if the callback throws', () => {
+        (() => {
+          dslConfig.configure(() => {
+            throw new Error('configure error');
           });
-          config.hello.should.eql('boo');
-        });
+        }).should.throw('configure error');
       });
     });
 
     describe('with a generator callback', () => {
-      it('should return a config object', () => {
+      it('should throw if the callback throws', () => {
         return co(function * () {
-          const config = yield dslConfig.configure(function * (dsl) {
-            yield nextTick();
-            dsl.hello('boo');
+          yield dslConfig.configure(() => {
+            throw new Error('configure error');
           });
-          config.hello.should.eql('boo');
-        });
+        }).should.be.rejectedWith('configure error');
       });
     });
 
     describe('with a callback that returns a promise', () => {
-      it('should return a config object', () => {
-        return co(function * () {
-          const config = yield dslConfig.configure(dsl => {
-            return Promise.resolve()
-            .then(nextTick)
-            .then(() => {
-              dsl.hello('boo');
-            });
-          });
-          config.hello.should.eql('boo');
-        });
+      it('should throw if the callback throws', () => {
+        return dslConfig.configure(() => {
+          return Promise.reject(new Error('configure error'));
+        }).should.be.rejectedWith('configure error');
       });
     });
   });
@@ -68,21 +56,17 @@ describe('DSLConfig', () => {
     });
 
     it('should default the value to undefined', () => {
-      return co(function * () {
-        const config = yield dslConfig.configure(() => {
-          // do nothing
-        });
-        expect(config.hello).to.be.undefined;
+      const config = dslConfig.configure(() => {
+        // do nothing
       });
+      expect(config.hello).to.be.undefined;
     });
 
     it('should add a value method', () => {
-      return co(function * () {
-        const config = yield dslConfig.configure(dsl => {
-          dsl.hello('boo');
-        });
-        config.hello.should.eql('boo');
+      const config = dslConfig.configure(dsl => {
+        dsl.hello('boo');
       });
+      config.hello.should.eql('boo');
     });
   });
 
@@ -92,22 +76,18 @@ describe('DSLConfig', () => {
     });
 
     it('should default the list to an empty array', () => {
-      return co(function * () {
-        const config = yield dslConfig.configure(() => {
-          // do nothing
-        });
-        config.hello.should.eql([]);
+      const config = dslConfig.configure(() => {
+        // do nothing
       });
+      config.hello.should.eql([]);
     });
 
     it('should add a valueList method', () => {
-      return co(function * () {
-        const config = yield dslConfig.configure(dsl => {
-          dsl.hello('boo');
-          dsl.hello('banana');
-        });
-        config.hello.should.eql(['boo', 'banana']);
+      const config = dslConfig.configure(dsl => {
+        dsl.hello('boo');
+        dsl.hello('banana');
       });
+      config.hello.should.eql(['boo', 'banana']);
     });
   });
 
@@ -118,26 +98,32 @@ describe('DSLConfig', () => {
     });
 
     it('should default the object to undefined', () => {
-      return co(function * () {
-        const config = yield dslConfig.configure(() => {
-          // do nothing
-        });
-        expect(config.hello).to.be.undefined;
+      const config = dslConfig.configure(() => {
+        // do nothing
       });
+      expect(config.hello).to.be.undefined;
     });
 
     describe('with a synchronous callback', () => {
       it('should add an object method', () => {
-        return co(function * () {
-          const config = yield dslConfig.configure(dsl => {
-            dsl.hello(hello => {
-              hello.boo('banana');
-            });
-          });
-          config.hello.should.eql({
-            boo: 'banana'
+        const config = dslConfig.configure(dsl => {
+          dsl.hello(hello => {
+            hello.boo('banana');
           });
         });
+        config.hello.should.eql({
+          boo: 'banana'
+        });
+      });
+
+      it('should throw if the callback throws', () => {
+        (() => {
+          dslConfig.configure(dsl => {
+            dsl.hello(() => {
+              throw new Error('configure error');
+            });
+          });
+        }).should.throw('configure error');
       });
     });
 
@@ -155,27 +141,41 @@ describe('DSLConfig', () => {
           });
         });
       });
+
+      it('should throw if the callback throws', () => {
+        return co(function * () {
+          yield dslConfig.configure(function * (dsl) {
+            yield dsl.hello(function * () {
+              yield nextTick();
+              throw new Error('configure error');
+            });
+          });
+        }).should.be.rejectedWith('configure error');
+      });
     });
 
     describe('with a callback that returns a promise', () => {
       it('should add an object method', () => {
-        return co(function * () {
-          const config = yield dslConfig.configure(dsl => {
-            return Promise.resolve()
+        return dslConfig.configure(dsl => {
+          return dsl.hello(hello => {
+            return nextTick()
             .then(() => {
-              return dsl.hello(hello => {
-                return Promise.resolve()
-                .then(nextTick)
-                .then(() => {
-                  hello.boo('banana');
-                });
-              });
+              hello.boo('banana');
             });
           });
-          config.hello.should.eql({
+        }).should.eventually.eql({
+          hello: {
             boo: 'banana'
-          });
+          }
         });
+      });
+
+      it('should throw if the callback throws', () => {
+        return dslConfig.configure(dsl => {
+          return dsl.hello(() => {
+            return Promise.reject(new Error('configure error'));
+          });
+        }).should.be.rejectedWith('configure error');
       });
     });
   });
@@ -187,31 +187,37 @@ describe('DSLConfig', () => {
     });
 
     it('should default the object list to an empty array', () => {
-      return co(function * () {
-        const config = yield dslConfig.configure(() => {
-          // do nothing
-        });
-        config.hello.should.eql([]);
+      const config = dslConfig.configure(() => {
+        // do nothing
       });
+      config.hello.should.eql([]);
     });
 
     describe('with a synchronous callback', () => {
       it('should add an objectList method', () => {
-        return co(function * () {
-          const config = yield dslConfig.configure(dsl => {
-            dsl.hello(hello => {
-              hello.boo('banana');
-            });
-            dsl.hello(hello => {
-              hello.boo('apple');
+        const config = dslConfig.configure(dsl => {
+          dsl.hello(hello => {
+            hello.boo('banana');
+          });
+          dsl.hello(hello => {
+            hello.boo('apple');
+          });
+        });
+        config.hello.should.eql([{
+          boo: 'banana'
+        }, {
+          boo: 'apple'
+        }]);
+      });
+
+      it('should throw if the callback throws', () => {
+        (() => {
+          dslConfig.configure(dsl => {
+            dsl.hello(() => {
+              throw new Error('configure error');
             });
           });
-          config.hello.should.eql([{
-            boo: 'banana'
-          }, {
-            boo: 'apple'
-          }]);
-        });
+        }).should.throw('configure error');
       });
     });
 
@@ -235,38 +241,51 @@ describe('DSLConfig', () => {
           }]);
         });
       });
+
+      it('should throw if the callback throws', () => {
+        return co(function * () {
+          yield dslConfig.configure(function * (dsl) {
+            yield dsl.hello(function * () {
+              yield nextTick();
+              throw new Error('configure error');
+            });
+          });
+        }).should.be.rejectedWith('configure error');
+      });
     });
 
     describe('with a callback that returns a promise', () => {
       it('should add an objectList method', () => {
-        return co(function * () {
-          const config = yield dslConfig.configure(dsl => {
-            return Promise.resolve()
+        return dslConfig.configure(dsl => {
+          return dsl.hello(hello => {
+            return nextTick()
             .then(() => {
-              return dsl.hello(hello => {
-                return Promise.resolve()
-                .then(nextTick)
-                .then(() => {
-                  hello.boo('banana');
-                });
-              });
-            })
-            .then(() => {
-              return dsl.hello(hello => {
-                return Promise.resolve()
-                .then(nextTick)
-                .then(() => {
-                  hello.boo('apple');
-                });
+              hello.boo('banana');
+            });
+          })
+          .then(() => {
+            return dsl.hello(hello => {
+              return nextTick()
+              .then(() => {
+                hello.boo('apple');
               });
             });
           });
-          config.hello.should.eql([{
+        }).should.eventually.eql({
+          hello: [{
             boo: 'banana'
           }, {
             boo: 'apple'
-          }]);
+          }]
         });
+      });
+
+      it('should throw if the callback throws', () => {
+        return dslConfig.configure(dsl => {
+          return dsl.hello(() => {
+            return Promise.reject(new Error('configure error'));
+          });
+        }).should.be.rejectedWith('configure error');
       });
     });
   });
