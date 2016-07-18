@@ -1,5 +1,9 @@
 # dsl-config
 
+[![Build Status](https://travis-ci.org/pghalliday/dsl-config.svg?branch=master)](https://travis-ci.org/pghalliday/dsl-config)
+[![Coverage Status](https://coveralls.io/repos/github/pghalliday/dsl-config/badge.svg?branch=master)](https://coveralls.io/github/pghalliday/dsl-config?branch=master)
+
+
 Generate an asynchronous DSL to generate a configuration object
 
 # Install
