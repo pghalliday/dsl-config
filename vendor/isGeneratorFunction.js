@@ -1,3 +1,5 @@
+'use strict';
+
 // generator test functions borrowed from co and adjusted for linter
 
 function isGenerator(obj) {
