@@ -566,6 +566,39 @@ describe('DSLConfig', () => {
     });
   });
 
+  describe('#sublist as a sublist', () => {
+    beforeEach(() => {
+      dslConfig
+      .sublist(
+        'sublist1',
+        new DSLConfig()
+        .sublist('sublist2')
+      );
+    });
+
+    it('should add a sublist method', () => {
+      dslConfig.configure(config => {
+        config
+        .sublist1(sublist1 => {
+          sublist1
+          .sublist2('1 1')
+          .sublist2('1 2');
+          return true;
+        })
+        .sublist1(sublist1 => {
+          sublist1
+          .sublist2('2 1')
+          .sublist2('2 2');
+          return true;
+        });
+        return true;
+      }).should.eql([
+        ['1 1', '1 2'],
+        ['2 1', '2 2']
+      ]);
+    });
+  });
+
   describe('#sublist with a DSLConfig', () => {
     beforeEach(() => {
       dslConfig

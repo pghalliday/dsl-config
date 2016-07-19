@@ -37,7 +37,7 @@ dslConfig
 .mapping('mapping1');
 .mapping('mapping2');
 
-// you can define a DSL for a value or list
+// you can define a DSL for a value, list or mapping
 const subDSLConfig = new DSLConfig();
 subDSLConfig
 .value('value1');

@@ -20,8 +20,12 @@ function configureDsl(dsl, callback) {
 class DSLConfig {
   constructor(dslConfig) {
     this.dsl = {};
-    this.config = {};
-    if (!_.isUndefined(dslConfig)) {
+    if (_.isUndefined(dslConfig)) {
+      this.config = {};
+    } else {
+      // if the supplied DSL config is an array then create
+      // an array
+      this.config = dslConfig.config instanceof Array ? [] : {};
       // bind the DSL methods to work with the correct
       // config context
       _.forOwn(dslConfig.dsl, (value, key) => {
