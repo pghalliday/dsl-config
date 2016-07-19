@@ -161,7 +161,7 @@ The above would generate a DSL to create a configuration object with the followi
 }
 ```
 
-Then to synchronously create a configuration
+Then to synchronously create the configuration above
 
 ```javascript
 const config = dslConfig.configure(dsl => {
