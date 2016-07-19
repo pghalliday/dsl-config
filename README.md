@@ -253,3 +253,14 @@ dslConfig.configure(dsl => {
 ```
 
 NB. Any fields not set using `#configure` will be left `undefined`
+
+As you may not know whether the supplied configuration callback is going to be asynchronous or not it is advisable to call `#configure` in the following way
+
+```javascript
+Promise.resolve(dslConfig.configure(callback))
+.then(config => {
+  // do something with config
+});
+```
+
+Even if synchronous, the following method will return a promise (it may already be resolved though)
