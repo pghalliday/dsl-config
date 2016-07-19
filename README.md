@@ -263,4 +263,4 @@ Promise.resolve(dslConfig.configure(callback))
 });
 ```
 
-Even if synchronous, the following method will return a promise (it may already be resolved though)
+Even if synchronous, the preceding method will return a promise (it may already be resolved though)
