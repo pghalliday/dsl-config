@@ -25,7 +25,7 @@ class DSLConfig {
     } else {
       // Clone the supplied DSL config to ensure everything
       // is initialised correctly
-      this.config = _.clone(dslConfig.config);
+      this.config = _.cloneDeep(dslConfig.config);
       // bind the DSL methods to work with the correct
       // config context
       _.forOwn(dslConfig.dsl, (value, key) => {
