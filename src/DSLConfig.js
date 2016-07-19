@@ -23,9 +23,9 @@ class DSLConfig {
     if (_.isUndefined(dslConfig)) {
       this.config = {};
     } else {
-      // if the supplied DSL config is an array then create
-      // an array
-      this.config = dslConfig.config instanceof Array ? [] : {};
+      // Clone the supplied DSL config to ensure everything
+      // is initialised correctly
+      this.config = _.clone(dslConfig.config);
       // bind the DSL methods to work with the correct
       // config context
       _.forOwn(dslConfig.dsl, (value, key) => {
@@ -77,15 +77,22 @@ class DSLConfig {
     return this;
   }
 
-  list(name, dslConfig) {
-    this.config[name] = [];
+  list(propertyName, methodName, dslConfig) {
+    if (_.isUndefined(methodName)) {
+      methodName = propertyName;
+    }
+    if (methodName instanceof DSLConfig) {
+      dslConfig = methodName;
+      methodName = propertyName;
+    }
+    this.config[propertyName] = [];
     if (_.isUndefined(dslConfig)) {
       // will be bound later so that the config field
       // can be accessed, this is done so that we don't
       // have to pollute the DSL name space with a reference
       // to the config
-      this.dsl[name] = function(value) {
-        this.config[name].push(value);
+      this.dsl[methodName] = function(value) {
+        this.config[propertyName].push(value);
         return this.dsl;
       };
     } else {
@@ -93,9 +100,9 @@ class DSLConfig {
       // can be accessed, this is done so that we don't
       // have to pollute the DSL name space with a reference
       // to the config
-      this.dsl[name] = function(callback) {
+      this.dsl[methodName] = function(callback) {
         const clone = new DSLConfig(dslConfig);
-        this.config[name].push(clone.config);
+        this.config[propertyName].push(clone.config);
         const promise = configureDsl(clone.dsl, callback);
         if (isPromise(promise)) {
           return promise.then(() => this.dsl);
@@ -106,14 +113,14 @@ class DSLConfig {
     return this;
   }
 
-  sublist(name, dslConfig) {
+  sublist(methodName, dslConfig) {
     this.config = [];
     if (_.isUndefined(dslConfig)) {
       // will be bound later so that the config field
       // can be accessed, this is done so that we don't
       // have to pollute the DSL name space with a reference
       // to the config
-      this.dsl[name] = function(value) {
+      this.dsl[methodName] = function(value) {
         this.config.push(value);
         return this.dsl;
       };
@@ -122,7 +129,7 @@ class DSLConfig {
       // can be accessed, this is done so that we don't
       // have to pollute the DSL name space with a reference
       // to the config
-      this.dsl[name] = function(callback) {
+      this.dsl[methodName] = function(callback) {
         const clone = new DSLConfig(dslConfig);
         this.config.push(clone.config);
         const promise = configureDsl(clone.dsl, callback);
@@ -135,15 +142,22 @@ class DSLConfig {
     return this;
   }
 
-  mapping(name, dslConfig) {
-    this.config[name] = {};
+  mapping(propertyName, methodName, dslConfig) {
+    if (_.isUndefined(methodName)) {
+      methodName = propertyName;
+    }
+    if (methodName instanceof DSLConfig) {
+      dslConfig = methodName;
+      methodName = propertyName;
+    }
+    this.config[propertyName] = {};
     if (_.isUndefined(dslConfig)) {
       // will be bound later so that the config field
       // can be accessed, this is done so that we don't
       // have to pollute the DSL name space with a reference
       // to the config
-      this.dsl[name] = function(key, value) {
-        this.config[name][key] = value;
+      this.dsl[methodName] = function(key, value) {
+        this.config[propertyName][key] = value;
         return this.dsl;
       };
     } else {
@@ -151,9 +165,9 @@ class DSLConfig {
       // can be accessed, this is done so that we don't
       // have to pollute the DSL name space with a reference
       // to the config
-      this.dsl[name] = function(key, callback) {
+      this.dsl[methodName] = function(key, callback) {
         const clone = new DSLConfig(dslConfig);
-        this.config[name][key] = clone.config;
+        this.config[propertyName][key] = clone.config;
         const promise = configureDsl(clone.dsl, callback);
         if (isPromise(promise)) {
           return promise.then(() => this.dsl);
@@ -164,13 +178,13 @@ class DSLConfig {
     return this;
   }
 
-  submapping(name, dslConfig) {
+  submapping(methodName, dslConfig) {
     if (_.isUndefined(dslConfig)) {
       // will be bound later so that the config field
       // can be accessed, this is done so that we don't
       // have to pollute the DSL name space with a reference
       // to the config
-      this.dsl[name] = function(key, value) {
+      this.dsl[methodName] = function(key, value) {
         this.config[key] = value;
         return this.dsl;
       };
@@ -179,7 +193,7 @@ class DSLConfig {
       // can be accessed, this is done so that we don't
       // have to pollute the DSL name space with a reference
       // to the config
-      this.dsl[name] = function(key, callback) {
+      this.dsl[methodName] = function(key, callback) {
         const clone = new DSLConfig(dslConfig);
         this.config[key] = clone.config;
         const promise = configureDsl(clone.dsl, callback);

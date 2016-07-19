@@ -24,23 +24,29 @@ const dslConfig = new DSLConfig();
 
 // define some values
 dslConfig
-.value('value1');
+.value('value1')
 .value('value2');
 
 // and lists of values
 dslConfig
-.list('list1');
+.list('list1')
 .list('list2');
 
 // and mappings of key/value pairs
 dslConfig
-.mapping('mapping1');
+.mapping('mapping1')
 .mapping('mapping2');
+
+// mappings and lists can use distinct property
+// and method names in case you worry about grammar
+dslConfig
+.list('items', 'item')
+.mapping('settings', 'setting');
 
 // you can define a DSL for a value, list or mapping
 const subDSLConfig = new DSLConfig();
 subDSLConfig
-.value('value1');
+.value('value1')
 .value('value2');
 dslConfig.value('value3', subDSLConfig);
 
@@ -121,6 +127,14 @@ The above would generate a DSL to create a configuration object with the followi
     'key1': 'value',
     'key2': 'value'
   },
+  items: [
+    'value'
+    'value'
+  ],
+  settings: [
+    'key1': 'value',
+    'key2': 'value'
+  ],
   value3: {
     value1: 'value',
     value2: 'value'
@@ -172,10 +186,14 @@ const config = dslConfig.configure(dsl => {
   .list1('value')
   .list2('value')
   .list2('value')
-  .mapping1('key1', 'value');
-  .mapping1('key2', 'value');
-  .mapping2('key1', 'value');
-  .mapping2('key2', 'value');
+  .mapping1('key1', 'value')
+  .mapping1('key2', 'value')
+  .mapping2('key1', 'value')
+  .mapping2('key2', 'value')
+  .item('value')
+  .item('value')
+  .setting('key1', 'value')
+  .setting('key2', 'value')
   .value3(value3 => {
     value3
     .value1('value')
@@ -199,24 +217,29 @@ const config = dslConfig.configure(dsl => {
     .value3('value');
   })
   .mappings(mappings => {
-    mappings.mapping('key1', 'value');
-    mappings.mapping('key2', 'value');
+    mappings
+    .mapping('key1', 'value')
+    .mapping('key2', 'value');
   })
   .mapping3('key1', mapping3 => {
-    mapping3.submapping('subkey1', 'value');
-    mapping3.submapping('subkey2', 'value');
+    mapping3
+    .submapping('subkey1', 'value')
+    .submapping('subkey2', 'value');
   })
   .mapping3('key2', mapping3 => {
-    mapping3.submapping('subkey1', 'value');
-    mapping3.submapping('subkey2', 'value');
+    mapping3
+    .submapping('subkey1', 'value')
+    .submapping('subkey2', 'value');
   })
   .list4(list4 => {
-    list4.sublist('value');
-    list4.sublist('value');
+    list4
+    .sublist('value')
+    .sublist('value');
   })
   .list4(list4 => {
-    list4.sublist('value');
-    list4.sublist('value');
+    list4
+    .sublist('value')
+    .sublist('value');
   });
 });
 ```

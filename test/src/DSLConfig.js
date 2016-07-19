@@ -114,6 +114,35 @@ describe('DSLConfig', () => {
     });
   });
 
+  describe('#list with distinct property and method names', () => {
+    beforeEach(() => {
+      dslConfig
+      .list('items', 'item');
+    });
+
+    it('should default the list to an empty array', () => {
+      dslConfig.configure(() => {
+        return true;
+      }).should.eql({
+        items: []
+      });
+    });
+
+    it('should add a list method', () => {
+      dslConfig.configure(config => {
+        config
+        .item('value1')
+        .item('value2');
+        return true;
+      }).should.eql({
+        items: [
+          'value1',
+          'value2'
+        ]
+      });
+    });
+  });
+
   describe('#sublist', () => {
     beforeEach(() => {
       dslConfig
@@ -176,6 +205,35 @@ describe('DSLConfig', () => {
         mapping2: {
           'key2 1': 'value2_1',
           'key2 2': 'value2_2'
+        }
+      });
+    });
+  });
+
+  describe('#mapping with distinct property and method names', () => {
+    beforeEach(() => {
+      dslConfig
+      .mapping('settings', 'setting');
+    });
+
+    it('should default the mapping to an empty object', () => {
+      dslConfig.configure(() => {
+        return true;
+      }).should.eql({
+        settings: {}
+      });
+    });
+
+    it('should add a mapping method', () => {
+      dslConfig.configure(config => {
+        config
+        .setting('key1', 'value1')
+        .setting('key2', 'value2');
+        return true;
+      }).should.eql({
+        settings: {
+          key1: 'value1',
+          key2: 'value2'
         }
       });
     });
