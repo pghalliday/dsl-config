@@ -102,7 +102,65 @@ class DSLConfig {
     return this;
   }
 
+  sublist(name, dslConfig) {
+    this.config = [];
+    if (_.isUndefined(dslConfig)) {
+      // will be bound later so that the config field
+      // can be accessed, this is done so that we don't
+      // have to pollute the DSL name space with a reference
+      // to the config
+      this.dsl[name] = function(value) {
+        this.config.push(value);
+        return this.dsl;
+      };
+    } else {
+      // will be bound later so that the config field
+      // can be accessed, this is done so that we don't
+      // have to pollute the DSL name space with a reference
+      // to the config
+      this.dsl[name] = function(callback) {
+        const clone = new DSLConfig(dslConfig);
+        this.config.push(clone.config);
+        const promise = configureDsl(clone.dsl, callback);
+        if (isPromise(promise)) {
+          return promise.then(() => this.dsl);
+        }
+        return this.dsl;
+      };
+    }
+    return this;
+  }
+
   mapping(name, dslConfig) {
+    this.config[name] = {};
+    if (_.isUndefined(dslConfig)) {
+      // will be bound later so that the config field
+      // can be accessed, this is done so that we don't
+      // have to pollute the DSL name space with a reference
+      // to the config
+      this.dsl[name] = function(key, value) {
+        this.config[name][key] = value;
+        return this.dsl;
+      };
+    } else {
+      // will be bound later so that the config field
+      // can be accessed, this is done so that we don't
+      // have to pollute the DSL name space with a reference
+      // to the config
+      this.dsl[name] = function(key, callback) {
+        const clone = new DSLConfig(dslConfig);
+        this.config[name][key] = clone.config;
+        const promise = configureDsl(clone.dsl, callback);
+        if (isPromise(promise)) {
+          return promise.then(() => this.dsl);
+        }
+        return this.dsl;
+      };
+    }
+    return this;
+  }
+
+  submapping(name, dslConfig) {
     if (_.isUndefined(dslConfig)) {
       // will be bound later so that the config field
       // can be accessed, this is done so that we don't

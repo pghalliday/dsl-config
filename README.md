@@ -32,6 +32,11 @@ dslConfig
 .list('list1');
 .list('list2');
 
+// and mappings of key/value pairs
+dslConfig
+.mapping('mapping1');
+.mapping('mapping2');
+
 // you can define a DSL for a value or list
 const subDSLConfig = new DSLConfig();
 subDSLConfig
@@ -53,30 +58,44 @@ cloneDSLConfig.value('value3');
 
 dslConfig.value('value4', cloneDSLConfig);
 
-// You can also specify arbitrary key/value mappings
+// You can also specify anonymous key/value mappings intended
+// to be used as sub mappings for other mappings
 //
 // NB. the supplied name will be used for the DSL method
 // but the mapping keys will be used in the resulting
-// config object. As such mappings should probably be
-// used alone in DSLConfig instances (eg. as the only
-// method under a value or list) to avoid overwriting
-// other named values and lists. This is done so that
+// config object. As such anonymous mappings should be
+// used alone in DSLConfig instances (ie. as the only
+// method under a value, list or mapping) to avoid overwriting
+// other named values, lists or mappings. This is done so that
 // mappings can contain mappings without having to have
 // extra keys at every level
 dslConfig
 .value(
-  'mappings1',
+  'mappings',
   new DSLConfig()
-  .mapping('mapping1')
+  .submapping('mapping')
 )
-.value(
-  'mappings2',
+.mapping(
+  'mapping2',
   new DSLConfig()
-  .mapping(
-    'mapping2'
-    new DSLConfig()
-    .mapping('submapping')
+  .submapping('submapping')
   )
+);
+
+// In the same vein you can also add anonymous
+// sub list methods so that a list can
+// contain a sub list without having to create a
+// named key for it.
+//
+// NB. this will convert the parent config to
+// an array instead of an object so it won't
+// be possible to use it as anything other than
+// a list
+dslConfig
+.list(
+  'list4',
+  new DSLConfig()
+  .sublist('sublist')
 );
 ```
 
@@ -94,6 +113,14 @@ The above would generate a DSL to create a configuration object with the followi
     'value',
     'value'
   ],
+  mapping1: {
+    'key1': 'value',
+    'key2': 'value'
+  },
+  mapping2: {
+    'key1': 'value',
+    'key2': 'value'
+  },
   value3: {
     value1: 'value',
     value2: 'value'
@@ -113,11 +140,11 @@ The above would generate a DSL to create a configuration object with the followi
     ],
     value3: 'value'
   },
-  mappings1: {
+  mappings: {
     'key1': 'value',
     'key2': 'value'
   },
-  mappings2: {
+  mapping3: {
     'key1': {
       'subkey1': 'value',
       'subkey2': 'value'
@@ -126,7 +153,11 @@ The above would generate a DSL to create a configuration object with the followi
       'subkey1': 'value',
       'subkey2': 'value'
     }
-  }
+  },
+  list4: [
+    ['value', 'value'],
+    ['value', 'value']
+  ]
 }
 ```
 
@@ -141,6 +172,10 @@ const config = dslConfig.configure(dsl => {
   .list1('value')
   .list2('value')
   .list2('value')
+  .mapping1('key1', 'value');
+  .mapping1('key2', 'value');
+  .mapping2('key1', 'value');
+  .mapping2('key2', 'value');
   .value3(value3 => {
     value3
     .value1('value')
@@ -163,19 +198,25 @@ const config = dslConfig.configure(dsl => {
     .value2('value')
     .value3('value');
   })
-  .mappings1(mappings1 => {
-    mappings1.mapping1('key1', 'value');
-    mappings1.mapping1('key2', 'value');
+  .mappings(mappings => {
+    mappings.mapping('key1', 'value');
+    mappings.mapping('key2', 'value');
   })
-  .mappings2(mappings2 => {
-    mappings2.mapping2('key1', mapping2 => {
-      mapping2.submapping('subkey1', 'value');
-      mapping2.submapping('subkey2', 'value');
-    });
-    mappings2.mapping2('key2', mapping2 => {
-      mapping2.submapping('subkey1', 'value');
-      mapping2.submapping('subkey2', 'value');
-    });
+  .mapping3('key1', mapping3 => {
+    mapping3.submapping('subkey1', 'value');
+    mapping3.submapping('subkey2', 'value');
+  })
+  .mapping3('key2', mapping3 => {
+    mapping3.submapping('subkey1', 'value');
+    mapping3.submapping('subkey2', 'value');
+  })
+  .list4(list4 => {
+    list4.sublist('value');
+    list4.sublist('value');
+  })
+  .list4(list4 => {
+    list4.sublist('value');
+    list4.sublist('value');
   });
 });
 ```
