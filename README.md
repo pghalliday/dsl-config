@@ -52,6 +52,32 @@ cloneDSLConfig.list('value2');
 cloneDSLConfig.value('value3');
 
 dslConfig.value('value4', cloneDSLConfig);
+
+// You can also specify arbitrary key/value mappings
+//
+// NB. the supplied name will be used for the DSL method
+// but the mapping keys will be used in the resulting
+// config object. As such mappings should probably be
+// used alone in DSLConfig instances (eg. as the only
+// method under a value or list) to avoid overwriting
+// other named values and lists. This is done so that
+// mappings can contain mappings without having to have
+// extra keys at every level
+dslConfig
+.value(
+  'mappings1',
+  new DSLConfig()
+  .mapping('mapping1')
+)
+.value(
+  'mappings2',
+  new DSLConfig()
+  .mapping(
+    'mapping2'
+    new DSLConfig()
+    .mapping('submapping')
+  )
+);
 ```
 
 The above would generate a DSL to create a configuration object with the following possible structure
@@ -86,6 +112,20 @@ The above would generate a DSL to create a configuration object with the followi
       'value'
     ],
     value3: 'value'
+  },
+  mappings1: {
+    'key1': 'value',
+    'key2': 'value'
+  },
+  mappings2: {
+    'key1': {
+      'subkey1': 'value',
+      'subkey2': 'value'
+    },
+    'key2': {
+      'subkey1': 'value',
+      'subkey2': 'value'
+    }
   }
 }
 ```
@@ -122,6 +162,20 @@ const config = dslConfig.configure(dsl => {
     .value2('value')
     .value2('value')
     .value3('value');
+  })
+  .mappings1(mappings1 => {
+    mappings1.mapping1('key1', 'value');
+    mappings1.mapping1('key2', 'value');
+  })
+  .mappings2(mappings2 => {
+    mappings2.mapping2('key1', mapping2 => {
+      mapping2.submapping('subkey1', 'value');
+      mapping2.submapping('subkey2', 'value');
+    });
+    mappings2.mapping2('key2', mapping2 => {
+      mapping2.submapping('subkey1', 'value');
+      mapping2.submapping('subkey2', 'value');
+    });
   });
 });
 ```

@@ -101,6 +101,34 @@ class DSLConfig {
     }
     return this;
   }
+
+  mapping(name, dslConfig) {
+    if (_.isUndefined(dslConfig)) {
+      // will be bound later so that the config field
+      // can be accessed, this is done so that we don't
+      // have to pollute the DSL name space with a reference
+      // to the config
+      this.dsl[name] = function(key, value) {
+        this.config[key] = value;
+        return this.dsl;
+      };
+    } else {
+      // will be bound later so that the config field
+      // can be accessed, this is done so that we don't
+      // have to pollute the DSL name space with a reference
+      // to the config
+      this.dsl[name] = function(key, callback) {
+        const clone = new DSLConfig(dslConfig);
+        this.config[key] = clone.config;
+        const promise = configureDsl(clone.dsl, callback);
+        if (isPromise(promise)) {
+          return promise.then(() => this.dsl);
+        }
+        return this.dsl;
+      };
+    }
+    return this;
+  }
 }
 
 module.exports = DSLConfig;
