@@ -27,6 +27,11 @@ dslConfig
 .value('value1')
 .value('value2');
 
+// give defaults to values
+dslConfig
+.value('value3', 'default3')
+.value('value4', 'default4');
+
 // and lists of values
 dslConfig
 .list('list1')
@@ -48,7 +53,14 @@ const subDSLConfig = new DSLConfig();
 subDSLConfig
 .value('value1')
 .value('value2');
-dslConfig.value('value3', subDSLConfig);
+dslConfig.value('value5', subDSLConfig);
+
+// you can default values with DSLs
+const subDSLConfigWithDefaults = new DSLConfig();
+subDSLConfigWithDefaults
+.value('value1', 'default1')
+.value('value2', 'default2');
+dslConfig.value('value6', true, subDSLConfigWithDefaults);
 
 // you can reuse DSLs
 dslConfig.list('list3', subDSLConfig);
@@ -62,7 +74,7 @@ cloneDSLConfig.list('value2');
 // extend with value3
 cloneDSLConfig.value('value3');
 
-dslConfig.value('value4', cloneDSLConfig);
+dslConfig.value('value7', cloneDSLConfig);
 
 // You can also specify anonymous key/value mappings intended
 // to be used as sub mappings for other mappings
@@ -111,6 +123,8 @@ The above would generate a DSL to create a configuration object with the followi
 {
   value1: 'value',
   value2: 'value',
+  value3: 'default3',
+  value4: 'default4',
   list1: [
     'value',
     'value'
@@ -135,9 +149,13 @@ The above would generate a DSL to create a configuration object with the followi
     'key1': 'value',
     'key2': 'value'
   ],
-  value3: {
+  value5: {
     value1: 'value',
     value2: 'value'
+  },
+  value6: {
+    value1: 'default1',
+    value2: 'default2'
   },
   list3: [{
     value1: 'value',
@@ -146,7 +164,7 @@ The above would generate a DSL to create a configuration object with the followi
     value1: 'value',
     value2: 'value'
   }],
-  value4: {
+  value7: {
     value1: 'value',
     value2: [
       'value',
@@ -194,7 +212,7 @@ const config = dslConfig.configure(dsl => {
   .item('value')
   .setting('key1', 'value')
   .setting('key2', 'value')
-  .value3(value3 => {
+  .value5(value3 => {
     value3
     .value1('value')
     .value2('value');
@@ -209,7 +227,7 @@ const config = dslConfig.configure(dsl => {
     .value1('value')
     .value2('value');
   })
-  .value4(value4 => {
+  .value7(value4 => {
     value4
     .value1('value')
     .value2('value')

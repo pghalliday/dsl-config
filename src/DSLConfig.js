@@ -49,12 +49,19 @@ class DSLConfig {
     return this.config;
   }
 
-  value(name, dslConfig) {
+  value(name, defaultValue, dslConfig) {
+    if (defaultValue instanceof DSLConfig) {
+      dslConfig = defaultValue;
+      defaultValue = undefined;
+    }
     if (_.isUndefined(dslConfig)) {
       // will be bound later so that the config field
       // can be accessed, this is done so that we don't
       // have to pollute the DSL name space with a reference
       // to the config
+      if (!_.isUndefined(defaultValue)) {
+        this.config[name] = defaultValue;
+      }
       this.dsl[name] = function(value) {
         this.config[name] = value;
         return this.dsl;
@@ -64,6 +71,10 @@ class DSLConfig {
       // can be accessed, this is done so that we don't
       // have to pollute the DSL name space with a reference
       // to the config
+      if (defaultValue) {
+        const clone = new DSLConfig(dslConfig);
+        this.config[name] = clone.config;
+      }
       this.dsl[name] = function(callback) {
         const clone = new DSLConfig(dslConfig);
         this.config[name] = clone.config;

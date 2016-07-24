@@ -77,6 +77,23 @@ describe('DSLConfig', () => {
     });
   });
 
+  describe('#value with a default', () => {
+    beforeEach(() => {
+      dslConfig
+      .value('value1', 'default1')
+      .value('value2', 'default2');
+    });
+
+    it('should default the value to the given default', () => {
+      dslConfig.configure(() => {
+        return true;
+      }).should.eql({
+        value1: 'default1',
+        value2: 'default2'
+      });
+    });
+  });
+
   describe('#list', () => {
     beforeEach(() => {
       dslConfig
@@ -407,6 +424,41 @@ describe('DSLConfig', () => {
             return Promise.reject(new Error('configure error'));
           });
         }).should.be.rejectedWith('configure error');
+      });
+    });
+  });
+
+  describe('#value with a DSLConfig and marked to have a default value', () => {
+    beforeEach(() => {
+      dslConfig
+      .value(
+        'sub1',
+        true,
+        new DSLConfig()
+        .value('sub1value1', 'default1_1')
+        .value('sub1value2', 'default1_2')
+      )
+      .value(
+        'sub2',
+        true,
+        new DSLConfig()
+        .value('sub2value1', 'default2_1')
+        .value('sub2value2', 'default2_2')
+      );
+    });
+
+    it('should default the value to the correct object', () => {
+      dslConfig.configure(() => {
+        return true;
+      }).should.eql({
+        sub1: {
+          sub1value1: 'default1_1',
+          sub1value2: 'default1_2'
+        },
+        sub2: {
+          sub2value1: 'default2_1',
+          sub2value2: 'default2_2'
+        }
       });
     });
   });
