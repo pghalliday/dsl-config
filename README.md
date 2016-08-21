@@ -196,7 +196,7 @@ The above would generate a DSL to create a configuration object with the followi
 Then to synchronously create the configuration above
 
 ```javascript
-const config = dslConfig.configure(dsl => {
+const config = dslConfig.load(dsl => {
   dsl
   .value1('value')
   .value2('value')
@@ -262,10 +262,10 @@ const config = dslConfig.configure(dsl => {
 });
 ```
 
-You can also use generators to asynchronously create a configuration (when asynchronous, `#configure` will actually return a `Promise`)
+You can also use generators to asynchronously create a configuration (when asynchronous, `#load` will actually return a `Promise`)
 
 ```javascript
-dslConfig.configure(function * (dsl) {
+dslConfig.load(function * (dsl) {
   dsl = yield config.value3(function * (value3) {
     // etc...
   });
@@ -278,7 +278,7 @@ dslConfig.configure(function * (dsl) {
 Or the DSL callbacks can return promises
 
 ```javascript
-dslConfig.configure(dsl => {
+dslConfig.load(dsl => {
   return dsl.value3(value3 => {
     return Promise.resolve()
     .then(() => {
@@ -293,12 +293,12 @@ dslConfig.configure(dsl => {
 });
 ```
 
-NB. Any fields not set using `#configure` will be left `undefined`
+NB. Any fields not set using `#load` will be left `undefined`
 
-As you may not know whether the supplied configuration callback is going to be asynchronous or not it is advisable to call `#configure` in the following way
+As you may not know whether the supplied configuration callback is going to be asynchronous or not it is advisable to call `#load` in the following way
 
 ```javascript
-Promise.resolve(dslConfig.configure(callback))
+Promise.resolve(dslConfig.load(callback))
 .then(config => {
   // do something with config
 });

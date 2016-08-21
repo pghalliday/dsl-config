@@ -34,7 +34,7 @@ class DSLConfig {
     }
   }
 
-  configure(callback) {
+  load(callback) {
     // first bind the DSL methods to work with the correct
     // config context as they have not been bound yet
     // in case they needed to be cloned (a function can
