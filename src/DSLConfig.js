@@ -71,19 +71,22 @@ class DSLConfig {
       // can be accessed, this is done so that we don't
       // have to pollute the DSL name space with a reference
       // to the config
-      if (defaultValue) {
-        const clone = new DSLConfig(dslConfig);
-        this.config[name] = clone.config;
-      }
-      this.dsl[name] = function(callback) {
-        const clone = new DSLConfig(dslConfig);
-        this.config[name] = clone.config;
-        const promise = configureDsl(clone.dsl, callback);
-        if (isPromise(promise)) {
-          return promise.then(() => this.dsl);
+      this.dsl[name] = (function() {
+        let clone;
+        if (defaultValue) {
+          clone = new DSLConfig(dslConfig);
+          this.config[name] = clone.config;
         }
-        return this.dsl;
-      };
+        return function(callback) {
+          clone = clone || new DSLConfig(dslConfig);
+          this.config[name] = clone.config;
+          const promise = configureDsl(clone.dsl, callback);
+          if (isPromise(promise)) {
+            return promise.then(() => this.dsl);
+          }
+          return this.dsl;
+        };
+      }).bind(this)();
     }
     return this;
   }

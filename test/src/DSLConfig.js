@@ -332,6 +332,25 @@ describe('DSLConfig', () => {
         });
       });
 
+      it('should accumulate on subsequent calls', () => {
+        dslConfig.configure(config => {
+          config
+          .sub1(sub1 => {
+            sub1
+            .sub1value1('value1');
+          })
+          .sub1(sub1 => {
+            sub1
+            .sub1value2('value2');
+          });
+        }).should.eql({
+          sub1: {
+            sub1value1: 'value1',
+            sub1value2: 'value2'
+          }
+        });
+      });
+
       it('should throw if the callback throws', () => {
         (() => {
           dslConfig.configure(config => {
