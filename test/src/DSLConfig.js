@@ -980,6 +980,28 @@ describe('DSLConfig', () => {
         });
       });
 
+      it('should accumulate on calls with the same key', () => {
+        dslConfig.configure(config => {
+          config
+          .sub1('key', sub1 => {
+            sub1
+            .sub1value1('value1');
+          })
+          .sub1('key', sub1 => {
+            sub1
+            .sub1value2('value2');
+          });
+        }).should.eql({
+          sub1: {
+            key: {
+              sub1value1: 'value1',
+              sub1value2: 'value2'
+            }
+          },
+          sub2: {}
+        });
+      });
+
       it('should throw if the callback throws', () => {
         (() => {
           dslConfig.configure(config => {
@@ -1194,6 +1216,25 @@ describe('DSLConfig', () => {
           'sub2 2': {
             sub2value1: 'sub2_2value1',
             sub2value2: 'sub2_2value2'
+          }
+        });
+      });
+
+      it('should accumulate on calls with the same key', () => {
+        dslConfig.configure(config => {
+          config
+          .sub1('key', sub1 => {
+            sub1
+            .sub1value1('value1');
+          })
+          .sub1('key', sub1 => {
+            sub1
+            .sub1value2('value2');
+          });
+        }).should.eql({
+          key: {
+            sub1value1: 'value1',
+            sub1value2: 'value2'
           }
         });
       });

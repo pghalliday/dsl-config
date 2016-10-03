@@ -176,15 +176,18 @@ class DSLConfig {
       // can be accessed, this is done so that we don't
       // have to pollute the DSL name space with a reference
       // to the config
-      this.dsl[methodName] = function(key, callback) {
-        const clone = new DSLConfig(dslConfig);
-        this.config[propertyName][key] = clone.config;
-        const promise = configureDsl(clone.dsl, callback);
-        if (isPromise(promise)) {
-          return promise.then(() => this.dsl);
-        }
-        return this.dsl;
-      };
+      this.dsl[methodName] = (function() {
+        const clones = {};
+        return function(key, callback) {
+          const clone = clones[key] = clones[key] || new DSLConfig(dslConfig);
+          this.config[propertyName][key] = clone.config;
+          const promise = configureDsl(clone.dsl, callback);
+          if (isPromise(promise)) {
+            return promise.then(() => this.dsl);
+          }
+          return this.dsl;
+        };
+      })();
     }
     return this;
   }
@@ -204,15 +207,18 @@ class DSLConfig {
       // can be accessed, this is done so that we don't
       // have to pollute the DSL name space with a reference
       // to the config
-      this.dsl[methodName] = function(key, callback) {
-        const clone = new DSLConfig(dslConfig);
-        this.config[key] = clone.config;
-        const promise = configureDsl(clone.dsl, callback);
-        if (isPromise(promise)) {
-          return promise.then(() => this.dsl);
-        }
-        return this.dsl;
-      };
+      this.dsl[methodName] = (function() {
+        const clones = {};
+        return function(key, callback) {
+          const clone = clones[key] = clones[key] || new DSLConfig(dslConfig);
+          this.config[key] = clone.config;
+          const promise = configureDsl(clone.dsl, callback);
+          if (isPromise(promise)) {
+            return promise.then(() => this.dsl);
+          }
+          return this.dsl;
+        };
+      })();
     }
     return this;
   }
