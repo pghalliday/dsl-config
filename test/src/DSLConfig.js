@@ -1401,4 +1401,77 @@ describe('DSLConfig', () => {
       });
     });
   });
+
+  describe('clone constructor', () => {
+    let clone;
+
+    beforeEach(() => {
+      // New DSL config
+      dslConfig
+      .value(
+        'value',
+        new DSLConfig()
+        .value('subvalue')
+      )
+      .mapping(
+        'mapping',
+        new DSLConfig()
+        .submapping('submapping')
+      );
+
+      // Clone the DSL config
+      clone = new DSLConfig(dslConfig);
+    });
+
+    it('should clone the config', () => {
+      clone.configure(config => {
+        config
+        .value(value => {
+          value.subvalue('subvalue');
+        })
+        .mapping('mapping', mapping => {
+          mapping.submapping('submapping', 'submapping');
+        });
+      })
+      .should.eql({
+        value: {
+          subvalue: 'subvalue'
+        },
+        mapping: {
+          mapping: {
+            submapping: 'submapping'
+          }
+        }
+      });
+    });
+
+    it('should reinitialise everything including sub DSL closures', () => {
+      // Populate the original with data
+      dslConfig.configure(config => {
+        config
+        .value(value => {
+          value.subvalue('subvalue');
+        })
+        .mapping('mapping', mapping => {
+          mapping.submapping('submapping', 'submapping');
+        });
+      })
+      .should.eql({
+        value: {
+          subvalue: 'subvalue'
+        },
+        mapping: {
+          mapping: {
+            submapping: 'submapping'
+          }
+        }
+      });
+
+      // ensure the clone did not get populated
+      clone.configure(() => {})
+      .should.eql({
+        mapping: {}
+      });
+    });
+  });
 });
