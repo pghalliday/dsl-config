@@ -1417,6 +1417,12 @@ describe('DSLConfig', () => {
         'mapping',
         new DSLConfig()
         .submapping('submapping')
+      )
+      .list('list')
+      .mapping(
+        'sublist',
+        new DSLConfig()
+        .sublist('item')
       );
 
       // Clone the DSL config
@@ -1431,6 +1437,18 @@ describe('DSLConfig', () => {
         })
         .mapping('mapping', mapping => {
           mapping.submapping('submapping', 'submapping');
+        })
+        .list('value')
+        .list('value')
+        .sublist('sublist1', sublist => {
+          sublist
+          .item('value')
+          .item('value');
+        })
+        .sublist('sublist2', sublist => {
+          sublist
+          .item('value')
+          .item('value');
         });
       })
       .should.eql({
@@ -1441,6 +1459,20 @@ describe('DSLConfig', () => {
           mapping: {
             submapping: 'submapping'
           }
+        },
+        list: [
+          'value',
+          'value'
+        ],
+        sublist: {
+          sublist1: [
+            'value',
+            'value'
+          ],
+          sublist2: [
+            'value',
+            'value'
+          ]
         }
       });
     });
@@ -1454,6 +1486,18 @@ describe('DSLConfig', () => {
         })
         .mapping('mapping', mapping => {
           mapping.submapping('submapping', 'submapping');
+        })
+        .list('value')
+        .list('value')
+        .sublist('sublist1', sublist => {
+          sublist
+          .item('value')
+          .item('value');
+        })
+        .sublist('sublist2', sublist => {
+          sublist
+          .item('value')
+          .item('value');
         });
       })
       .should.eql({
@@ -1464,13 +1508,29 @@ describe('DSLConfig', () => {
           mapping: {
             submapping: 'submapping'
           }
+        },
+        list: [
+          'value',
+          'value'
+        ],
+        sublist: {
+          sublist1: [
+            'value',
+            'value'
+          ],
+          sublist2: [
+            'value',
+            'value'
+          ]
         }
       });
 
       // ensure the clone did not get populated
       clone.configure(() => {})
       .should.eql({
-        mapping: {}
+        list: [],
+        mapping: {},
+        sublist: {}
       });
     });
   });
