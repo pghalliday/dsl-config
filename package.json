@@ -1,6 +1,6 @@
 {
   "name": "dsl-config",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Generate a DSL config with generators",
   "main": "index.js",
   "scripts": {
