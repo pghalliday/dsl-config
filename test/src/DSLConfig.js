@@ -1525,12 +1525,51 @@ describe('DSLConfig', () => {
         }
       });
 
-      // ensure the clone did not get populated
-      clone.configure(() => {})
+      // ensure the clone is still independent
+      clone.configure(config => {
+        config
+        .value(value => {
+          value.subvalue('clonesubvalue');
+        })
+        .mapping('mapping', mapping => {
+          mapping.submapping('submapping', 'clonesubmapping');
+        })
+        .list('clonevalue')
+        .list('clonevalue')
+        .sublist('sublist1', sublist => {
+          sublist
+          .item('clonevalue')
+          .item('clonevalue');
+        })
+        .sublist('sublist2', sublist => {
+          sublist
+          .item('clonevalue')
+          .item('clonevalue');
+        });
+      })
       .should.eql({
-        list: [],
-        mapping: {},
-        sublist: {}
+        value: {
+          subvalue: 'clonesubvalue'
+        },
+        mapping: {
+          mapping: {
+            submapping: 'clonesubmapping'
+          }
+        },
+        list: [
+          'clonevalue',
+          'clonevalue'
+        ],
+        sublist: {
+          sublist1: [
+            'clonevalue',
+            'clonevalue'
+          ],
+          sublist2: [
+            'clonevalue',
+            'clonevalue'
+          ]
+        }
       });
     });
   });
